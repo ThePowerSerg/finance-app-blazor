@@ -1,5 +1,54 @@
+@page "/quotes"
+
+@inject IHttpClientFactory clientFactory
+
 <h3>Quotes</h3>
 
-@code {
 
+@{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Change</th>
+                <th>Percent Change</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (quote != null)
+            {
+                <tr>
+                    <td>@quote.Symbol</td>
+                    <td>@quote.Name</td>
+                    <td>@quote.Change</td>
+                    <td>@quote.PercentChange</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+   
+
+@code {
+    private Quote? quote;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "https://api.twelvedata.com/quote?symbol=IBM&apikey=demo");
+
+        var client = clientFactory.CreateClient();
+        var response = await client.SendAsync(request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            quote = await response.Content.ReadFromJsonAsync<Quote>();
+        }
+        else
+        {
+            Console.WriteLine($"Request failed with status code: {response.StatusCode}");
+        }
+    }
 }
